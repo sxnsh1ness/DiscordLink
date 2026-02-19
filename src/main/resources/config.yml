@@ -1,0 +1,113 @@
+# DiscordLink Configuration
+# GitHub: https://github.com/sxnsh1ness/DiscordLink
+
+discord:
+  # Your Discord bot token from https://discord.com/developers/applications
+  token: "YOUR_BOT_TOKEN_HERE"
+  # Your Discord Guild (Server) ID
+  guild-id: "YOUR_GUILD_ID_HERE"
+
+# Linking Settings
+link:
+  # Require players to link before joining
+  required: false
+  # Allow unlinking
+  allow-unlink: true
+  # Role to give linked players (set to "" to disable)
+  linked-role-id: ""
+  # Sync Discord nickname to Minecraft username
+  sync-nickname: true
+  # Kick message when linking is required (supports color codes)
+  kick-message: "&cYou must link your Discord account to play!\n&7Use &e/discord link &7in Discord."
+
+# Two-Factor Authentication
+2fa:
+  enabled: false
+  # Expire code after X seconds
+  code-expire-seconds: 120
+  # Kick message when 2FA fails
+  kick-message: "&cYour 2FA code expired. Please rejoin and verify via Discord."
+
+# Cross Chat Settings
+chat:
+  enabled: true
+  # Discord channel ID for Minecraft <-> Discord chat
+  channel-id: "YOUR_CHAT_CHANNEL_ID"
+  # Use webhooks for nicer messages (set webhook URL or "" to disable)
+  webhook-url: ""
+  # Format for messages from Discord appearing in Minecraft
+  # Variables: %username%, %tag%, %message%, %color%
+  discord-to-minecraft: "&8[&9Discord&8] &7%username%&8: &r%message%"
+  # Format for messages from Minecraft appearing in Discord
+  # Variables: %username%, %message%, %world%
+  minecraft-to-discord: "**%username%**: %message%"
+  # Should we relay Minecraft chat to Discord?
+  relay-to-discord: true
+  # Should we relay Discord messages to Minecraft?
+  relay-to-minecraft: true
+
+# Activity/Event Messages
+events:
+  enabled: true
+  # Same channel as chat or different channel ID
+  channel-id: "YOUR_EVENTS_CHANNEL_ID"
+  join:
+    enabled: true
+    message: "✅ **%username%** joined the server"
+  quit:
+    enabled: true
+    message: "❌ **%username%** left the server"
+  death:
+    enabled: true
+    # %death_message% = vanilla death message
+    message: "💀 **%death_message%**"
+  first-join:
+    enabled: true
+    message: "🎉 **%username%** joined the server for the first time!"
+  advancement:
+    enabled: true
+    message: "🏆 **%username%** earned the advancement **%advancement%**"
+
+# Console Channel
+console:
+  enabled: false
+  # Channel ID for console output
+  channel-id: "YOUR_CONSOLE_CHANNEL_ID"
+  # Allow commands from this Discord channel (admin only!)
+  allow-commands: false
+  # Discord role IDs that can run commands (requires allow-commands: true)
+  command-role-ids:
+    - "YOUR_ADMIN_ROLE_ID"
+
+# Bot Status / Activity
+status:
+  enabled: true
+  # Update interval in seconds
+  update-interval: 30
+  # Activity type: PLAYING, WATCHING, LISTENING, COMPETING
+  type: WATCHING
+  # Message format (variables: %online%, %max%)
+  message: "%online%/%max% players"
+
+# Role Sync (requires LuckPerms)
+role-sync:
+  enabled: false
+  # Map LuckPerms group -> Discord role ID
+  # Format: "group-name": "discord-role-id"
+  mappings:
+    default: "MEMBER_ROLE_ID"
+    vip: "VIP_ROLE_ID"
+    admin: "ADMIN_ROLE_ID"
+
+# Ban Sync
+ban-sync:
+  # Sync Minecraft bans to Discord (ban linked player from server)
+  minecraft-to-discord: false
+  # Sync Discord bans to Minecraft
+  discord-to-minecraft: false
+
+# Messages prefix for in-game messages
+prefix: "&8[&9Discord&8] &r"
+
+# Debug mode (more verbose logging)
+debug: false

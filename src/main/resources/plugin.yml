@@ -1,0 +1,37 @@
+name: DiscordLink
+version: ${version}
+main: io.github.sxnsh1ness.discordlink.DiscordLink
+api-version: '1.21'
+softdepend:
+  - LuckPerms
+  - Vault
+
+commands:
+  discord:
+    description: Discord link commands
+    usage: /discord <link|unlink|info|help>
+    aliases: [dc]
+  discordlink:
+    description: DiscordLink admin commands
+    usage: /<command> <reload|status|forcelink|forceunlink>
+    aliases: [dl]
+
+permissions:
+  discordlink.link:
+    description: Allow player to link their Discord account
+    default: true
+  discordlink.unlink:
+    description: Allow player to unlink their Discord account
+    default: true
+  discordlink.info:
+    description: Allow player to see link info
+    default: true
+  discordlink.admin:
+    description: Admin commands for DiscordLink
+    default: op
+  discordlink.bypass.2fa:
+    description: Bypass 2FA requirement
+    default: false
+  discordlink.bypass.link:
+    description: Bypass mandatory link requirement
+    default: op

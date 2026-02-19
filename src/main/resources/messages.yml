@@ -1,0 +1,60 @@
+# DiscordLink Messages
+# Use & for color codes, {variables} for placeholders
+
+link:
+  # Sent when player uses /discord link
+  code-generated: "&aYour link code is: &e&l{code}&a. DM this code to the bot on Discord within &e{seconds}&a seconds."
+  already-linked: "&cYour account is already linked! Use &e/discord unlink &cto unlink."
+  success: "&aYour account has been successfully linked to &e{tag}&a!"
+  failed-invalid: "&cInvalid or expired link code. Use &e/discord link &cto generate a new one."
+  failed-used: "&cThis code has already been used."
+  code-expired: "&cYour link code has expired. Use &e/discord link &cto generate a new one."
+
+unlink:
+  success: "&aYour account has been unlinked from Discord."
+  not-linked: "&cYour account is not linked to Discord."
+  disabled: "&cUnlinking is disabled on this server."
+  confirm: "&cAre you sure you want to unlink? Type &e/discord unlink confirm &cto confirm."
+
+info:
+  linked: "&aYou are linked to &e{tag} &a(ID: {id})."
+  not-linked: "&cYou are not linked to any Discord account. Use &e/discord link&c."
+
+2fa:
+  code-sent: "&aA 2FA code has been sent to your Discord (&e{tag}&a). Please enter it in Discord within &e{seconds}&a seconds."
+  success: "&a2FA verified successfully!"
+  failed: "&cInvalid 2FA code. Please try again."
+  expired: "&c2FA code has expired. Please rejoin to get a new code."
+
+errors:
+  no-permission: "&cYou don't have permission to do this."
+  player-only: "&cThis command can only be used by players."
+  discord-offline: "&cDiscord bot is currently offline. Please try again later."
+  unknown-command: "&cUnknown command. Use &e/discord help &cfor help."
+
+admin:
+  reloaded: "&aDiscordLink configuration reloaded!"
+  force-linked: "&aSuccessfully linked &e{player}&a to &e{tag}&a."
+  force-unlinked: "&aSuccessfully unlinked &e{player}&a from Discord."
+  player-not-found: "&cPlayer not found."
+
+help:
+  header: "&8&m-----&r &9&lDiscordLink &8&m-----"
+  link: "&e/discord link &7- Link your Discord account"
+  unlink: "&e/discord unlink &7- Unlink your Discord account"
+  info: "&e/discord info &7- View your link status"
+  footer: "&8&m---------------------"
+
+discord:
+  link-dm: |
+    🔗 **Account Linking Request**
+    Player **{player}** wants to link to your Discord account.
+    Click the button or type `/link {code}` to confirm.
+    This code expires in **{seconds} seconds**.
+  link-success-dm: "✅ Your Discord account has been successfully linked to **{player}**!"
+  link-already-dm: "❌ Your Discord account is already linked to **{player}**. Unlink first."
+  2fa-dm: |
+    🔒 **Two-Factor Authentication**
+    Your 2FA code for **{player}** is: `{code}`
+    This code expires in **{seconds} seconds**. Enter it in-game with `/2fa {code}`.
+  unlink-success-dm: "✅ Your Discord account has been unlinked from Minecraft."
