@@ -11,24 +11,18 @@ import java.util.List;
 
 public class DiscordConsoleListener extends ListenerAdapter {
 
-    private final DiscordLink plugin;
-
-    public DiscordConsoleListener(DiscordLink plugin) {
-        this.plugin = plugin;
-    }
-
     @Override
     public void onMessageReceived(MessageReceivedEvent event) {
         if (event.getAuthor().isBot()) return;
         if (!event.isFromGuild()) return;
-        if (!plugin.getConfigManager().isConsoleEnabled()) return;
-        if (!plugin.getConfigManager().isConsoleCommandsAllowed()) return;
+        if (!DiscordLink.getInstance().getConfigManager().isConsoleEnabled()) return;
+        if (!DiscordLink.getInstance().getConfigManager().isConsoleCommandsAllowed()) return;
 
-        String consoleChannelId = plugin.getConfigManager().getConsoleChannelId();
+        String consoleChannelId = DiscordLink.getInstance().getConfigManager().getConsoleChannelId();
         if (consoleChannelId.isEmpty()) return;
         if (!event.getChannel().getId().equals(consoleChannelId)) return;
         if (event.getMember() == null) return;
-        List<String> allowedRoles = plugin.getConfigManager().getConsoleCommandRoleIds();
+        List<String> allowedRoles = DiscordLink.getInstance().getConfigManager().getConsoleCommandRoleIds();
         boolean hasPermission = event.getMember().getRoles().stream()
                 .anyMatch(r -> allowedRoles.contains(r.getId()));
 
@@ -44,7 +38,7 @@ public class DiscordConsoleListener extends ListenerAdapter {
         final String finalCommand = command;
         Logger.info("[Discord Console] " + event.getAuthor().getAsTag() + " executed: " + finalCommand);
 
-        Bukkit.getScheduler().runTask(plugin, () -> {
+        Bukkit.getScheduler().runTask(DiscordLink.getInstance(), () -> {
             Bukkit.dispatchCommand(Bukkit.getConsoleSender(), finalCommand);
         });
 

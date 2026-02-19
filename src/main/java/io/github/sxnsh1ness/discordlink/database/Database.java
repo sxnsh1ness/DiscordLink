@@ -1,6 +1,7 @@
 package io.github.sxnsh1ness.discordlink.database;
 
 import io.github.sxnsh1ness.discordlink.DiscordLink;
+import io.github.sxnsh1ness.discordlink.data.CodeData;
 import io.github.sxnsh1ness.discordlink.util.Logger;
 
 import java.io.File;
@@ -9,17 +10,12 @@ import java.util.UUID;
 
 public class Database {
 
-    private final DiscordLink plugin;
     private Connection connection;
-
-    public Database(DiscordLink plugin) {
-        this.plugin = plugin;
-    }
 
     public boolean initialize() {
         try {
-            File dbFile = new File(plugin.getDataFolder(), "data.db");
-            plugin.getDataFolder().mkdirs();
+            File dbFile = new File(DiscordLink.getInstance().getDataFolder(), "data.db");
+            DiscordLink.getInstance().getDataFolder().mkdirs();
 
             Class.forName("org.sqlite.JDBC");
             connection = DriverManager.getConnection("jdbc:sqlite:" + dbFile.getAbsolutePath());
@@ -185,16 +181,6 @@ public class Database {
             }
         } catch (SQLException e) {
             e.printStackTrace();
-        }
-    }
-
-    public static class CodeData {
-        public final UUID uuid;
-        public final String username;
-
-        public CodeData(UUID uuid, String username) {
-            this.uuid = uuid;
-            this.username = username;
         }
     }
 }

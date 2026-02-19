@@ -15,16 +15,10 @@ import java.util.Map;
 
 public class DiscordCommand implements CommandExecutor, TabCompleter {
 
-    private final DiscordLink plugin;
-
-    public DiscordCommand(DiscordLink plugin) {
-        this.plugin = plugin;
-    }
-
     @Override
     public boolean onCommand(@NonNull CommandSender sender, @NonNull Command cmd, @NonNull String label, String @NonNull [] args) {
         if (!(sender instanceof Player player)) {
-            sender.sendMessage(plugin.getConfigManager().getMessage("errors.player-only"));
+            sender.sendMessage(DiscordLink.getInstance().getConfigManager().getMessage("errors.player-only"));
             return true;
         }
 
@@ -39,7 +33,7 @@ public class DiscordCommand implements CommandExecutor, TabCompleter {
             case "info", "status" -> handleInfo(player);
             case "help" -> showHelp(player);
             case "2fa" -> handleTwoFA(player, args);
-            default -> player.sendMessage(plugin.getConfigManager().getMessage("errors.unknown-command"));
+            default -> player.sendMessage(DiscordLink.getInstance().getConfigManager().getMessage("errors.unknown-command"));
         }
 
         return true;
@@ -47,24 +41,24 @@ public class DiscordCommand implements CommandExecutor, TabCompleter {
 
     private void handleLink(Player player) {
         if (!player.hasPermission("discordlink.link")) {
-            player.sendMessage(plugin.getConfigManager().getMessage("errors.no-permission"));
+            player.sendMessage(DiscordLink.getInstance().getConfigManager().getMessage("errors.no-permission"));
             return;
         }
 
-        if (!plugin.getDiscordBot().isReady()) {
-            player.sendMessage(plugin.getConfigManager().getMessage("errors.discord-offline"));
+        if (!DiscordLink.getInstance().getDiscordBot().isReady()) {
+            player.sendMessage(DiscordLink.getInstance().getConfigManager().getMessage("errors.discord-offline"));
             return;
         }
 
-        if (plugin.getLinkManager().isLinked(player.getUniqueId())) {
-            player.sendMessage(plugin.getConfigManager().getMessage("link.already-linked"));
+        if (DiscordLink.getInstance().getLinkManager().isLinked(player.getUniqueId())) {
+            player.sendMessage(DiscordLink.getInstance().getConfigManager().getMessage("link.already-linked"));
             return;
         }
 
-        plugin.getServer().getScheduler().runTaskAsynchronously(plugin, () -> {
+        DiscordLink.getInstance().getServer().getScheduler().runTaskAsynchronously(DiscordLink.getInstance(), () -> {
             try {
-                String code = plugin.getLinkManager().generateLinkCode(player.getUniqueId(), player.getName());
-                player.sendMessage(plugin.getConfigManager().getMessage("link.code-generated",
+                String code = DiscordLink.getInstance().getLinkManager().generateLinkCode(player.getUniqueId(), player.getName());
+                player.sendMessage(DiscordLink.getInstance().getConfigManager().getMessage("link.code-generated",
                         Map.of(
                                 "code", code,
                                 "seconds", "600"
@@ -77,29 +71,29 @@ public class DiscordCommand implements CommandExecutor, TabCompleter {
 
     private void handleUnlink(Player player, String[] args) {
         if (!player.hasPermission("discordlink.unlink")) {
-            player.sendMessage(plugin.getConfigManager().getMessage("errors.no-permission"));
+            player.sendMessage(DiscordLink.getInstance().getConfigManager().getMessage("errors.no-permission"));
             return;
         }
 
-        if (!plugin.getConfigManager().isUnlinkAllowed()) {
-            player.sendMessage(plugin.getConfigManager().getMessage("unlink.disabled"));
+        if (!DiscordLink.getInstance().getConfigManager().isUnlinkAllowed()) {
+            player.sendMessage(DiscordLink.getInstance().getConfigManager().getMessage("unlink.disabled"));
             return;
         }
 
-        if (!plugin.getLinkManager().isLinked(player.getUniqueId())) {
-            player.sendMessage(plugin.getConfigManager().getMessage("unlink.not-linked"));
+        if (!DiscordLink.getInstance().getLinkManager().isLinked(player.getUniqueId())) {
+            player.sendMessage(DiscordLink.getInstance().getConfigManager().getMessage("unlink.not-linked"));
             return;
         }
 
         if (args.length < 2 || !args[1].equalsIgnoreCase("confirm")) {
-            player.sendMessage(plugin.getConfigManager().getMessage("unlink.confirm"));
+            player.sendMessage(DiscordLink.getInstance().getConfigManager().getMessage("unlink.confirm"));
             return;
         }
 
-        plugin.getServer().getScheduler().runTaskAsynchronously(plugin, () -> {
-            boolean success = plugin.getLinkManager().unlink(player.getUniqueId());
+        DiscordLink.getInstance().getServer().getScheduler().runTaskAsynchronously(DiscordLink.getInstance(), () -> {
+            boolean success = DiscordLink.getInstance().getLinkManager().unlink(player.getUniqueId());
             if (success) {
-                player.sendMessage(plugin.getConfigManager().getMessage("unlink.success"));
+                player.sendMessage(DiscordLink.getInstance().getConfigManager().getMessage("unlink.success"));
             } else {
                 player.sendMessage("§cFailed to unlink. Please try again.");
             }
@@ -108,18 +102,18 @@ public class DiscordCommand implements CommandExecutor, TabCompleter {
 
     private void handleInfo(Player player) {
         if (!player.hasPermission("discordlink.info")) {
-            player.sendMessage(plugin.getConfigManager().getMessage("errors.no-permission"));
+            player.sendMessage(DiscordLink.getInstance().getConfigManager().getMessage("errors.no-permission"));
             return;
         }
 
-        plugin.getServer().getScheduler().runTaskAsynchronously(plugin, () -> {
-            boolean linked = plugin.getLinkManager().isLinked(player.getUniqueId());
+        DiscordLink.getInstance().getServer().getScheduler().runTaskAsynchronously(DiscordLink.getInstance(), () -> {
+            boolean linked = DiscordLink.getInstance().getLinkManager().isLinked(player.getUniqueId());
             if (!linked) {
-                player.sendMessage(plugin.getConfigManager().getMessage("info.not-linked"));
+                player.sendMessage(DiscordLink.getInstance().getConfigManager().getMessage("info.not-linked"));
             } else {
-                String tag = plugin.getLinkManager().getDiscordTag(player.getUniqueId());
-                String id = plugin.getLinkManager().getDiscordId(player.getUniqueId());
-                player.sendMessage(plugin.getConfigManager().getMessage("info.linked",
+                String tag = DiscordLink.getInstance().getLinkManager().getDiscordTag(player.getUniqueId());
+                String id = DiscordLink.getInstance().getLinkManager().getDiscordId(player.getUniqueId());
+                player.sendMessage(DiscordLink.getInstance().getConfigManager().getMessage("info.linked",
                         Map.of("tag", tag != null ? tag : "Unknown", "id", id != null ? id : "Unknown")));
             }
         });
@@ -127,32 +121,32 @@ public class DiscordCommand implements CommandExecutor, TabCompleter {
 
     private void handleTwoFA(Player player, String[] args) {
         if (args.length < 2) {
-            player.sendMessage(plugin.getConfigManager().getPrefix() + "§cUsage: /discord 2fa <code>");
+            player.sendMessage(DiscordLink.getInstance().getConfigManager().getPrefix() + "§cUsage: /discord 2fa <code>");
             return;
         }
 
-        if (!plugin.getTwoFAManager().hasPendingSession(player.getUniqueId())) {
-            player.sendMessage(plugin.getConfigManager().getPrefix() + "§cNo active 2FA session.");
+        if (!DiscordLink.getInstance().getTwoFAManager().hasPendingSession(player.getUniqueId())) {
+            player.sendMessage(DiscordLink.getInstance().getConfigManager().getPrefix() + "§cNo active 2FA session.");
             return;
         }
 
         String code = args[1].trim();
-        var result = plugin.getTwoFAManager().verify(player.getUniqueId(), code);
+        var result = DiscordLink.getInstance().getTwoFAManager().verify(player.getUniqueId(), code);
 
         switch (result) {
-            case SUCCESS -> player.sendMessage(plugin.getConfigManager().getMessage("2fa.success"));
-            case WRONG_CODE -> player.sendMessage(plugin.getConfigManager().getMessage("2fa.failed"));
-            case EXPIRED -> player.sendMessage(plugin.getConfigManager().getMessage("2fa.expired"));
-            case NO_SESSION -> player.sendMessage(plugin.getConfigManager().getPrefix() + "§cNo active 2FA session.");
+            case SUCCESS -> player.sendMessage(DiscordLink.getInstance().getConfigManager().getMessage("2fa.success"));
+            case WRONG_CODE -> player.sendMessage(DiscordLink.getInstance().getConfigManager().getMessage("2fa.failed"));
+            case EXPIRED -> player.sendMessage(DiscordLink.getInstance().getConfigManager().getMessage("2fa.expired"));
+            case NO_SESSION -> player.sendMessage(DiscordLink.getInstance().getConfigManager().getPrefix() + "§cNo active 2FA session.");
         }
     }
 
     private void showHelp(Player player) {
-        player.sendMessage(plugin.getConfigManager().getMessage("help.header"));
-        player.sendMessage(plugin.getConfigManager().getMessage("help.link"));
-        player.sendMessage(plugin.getConfigManager().getMessage("help.unlink"));
-        player.sendMessage(plugin.getConfigManager().getMessage("help.info"));
-        player.sendMessage(plugin.getConfigManager().getMessage("help.footer"));
+        player.sendMessage(DiscordLink.getInstance().getConfigManager().getMessage("help.header"));
+        player.sendMessage(DiscordLink.getInstance().getConfigManager().getMessage("help.link"));
+        player.sendMessage(DiscordLink.getInstance().getConfigManager().getMessage("help.unlink"));
+        player.sendMessage(DiscordLink.getInstance().getConfigManager().getMessage("help.info"));
+        player.sendMessage(DiscordLink.getInstance().getConfigManager().getMessage("help.footer"));
     }
 
     @Override

@@ -37,8 +37,8 @@ public final class DiscordLink extends JavaPlugin {
         saveDefaultConfig();
         saveResource("messages.yml", false);
 
-        this.configManager = new ConfigManager(this);
-        this.database = new Database(this);
+        this.configManager = new ConfigManager();
+        this.database = new Database();
 
         if (!database.initialize()) {
             Logger.severe("Failed to initialize database! Disabling plugin.");
@@ -46,8 +46,8 @@ public final class DiscordLink extends JavaPlugin {
             return;
         }
 
-        this.linkManager = new LinkManager(this);
-        this.twoFAManager = new TwoFAManager(this);
+        this.linkManager = new LinkManager();
+        this.twoFAManager = new TwoFAManager();
 
         String token = configManager.getToken();
         if (token == null || token.equals("YOUR_BOT_TOKEN_HERE") || token.isEmpty()) {
@@ -56,18 +56,18 @@ public final class DiscordLink extends JavaPlugin {
             return;
         }
 
-        this.discordBot = new DiscordBot(this);
+        this.discordBot = new DiscordBot();
         if (!discordBot.start()) {
             Logger.severe("Failed to start Discord bot! Check your token and internet connection.");
             getServer().getPluginManager().disablePlugin(this);
             return;
         }
 
-        getServer().getPluginManager().registerEvents(new PlayerEventListener(this), this);
-        getServer().getPluginManager().registerEvents(new MinecraftChatListener(this), this);
+        getServer().getPluginManager().registerEvents(new PlayerEventListener(), this);
+        getServer().getPluginManager().registerEvents(new MinecraftChatListener(), this);
 
-        Objects.requireNonNull(getCommand("discord")).setExecutor(new DiscordCommand(this));
-        Objects.requireNonNull(getCommand("discordlink")).setExecutor(new DiscordLinkAdminCommand(this));
+        Objects.requireNonNull(getCommand("discord")).setExecutor(new DiscordCommand());
+        Objects.requireNonNull(getCommand("discordlink")).setExecutor(new DiscordLinkAdminCommand());
 
         Logger.info("&aDiscordLink enabled successfully!");
     }

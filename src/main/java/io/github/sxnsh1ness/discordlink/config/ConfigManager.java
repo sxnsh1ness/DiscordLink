@@ -11,20 +11,18 @@ import java.util.Map;
 
 public class ConfigManager {
 
-    private final DiscordLink plugin;
     private FileConfiguration config;
     private FileConfiguration messages;
 
-    public ConfigManager(DiscordLink plugin) {
-        this.plugin = plugin;
+    public ConfigManager() {
         reload();
     }
 
     public void reload() {
-        plugin.reloadConfig();
-        this.config = plugin.getConfig();
+        DiscordLink.getInstance().reloadConfig();
+        this.config = DiscordLink.getInstance().getConfig();
 
-        File messagesFile = new File(plugin.getDataFolder(), "messages.yml");
+        File messagesFile = new File(DiscordLink.getInstance().getDataFolder(), "messages.yml");
         this.messages = YamlConfiguration.loadConfiguration(messagesFile);
     }
 

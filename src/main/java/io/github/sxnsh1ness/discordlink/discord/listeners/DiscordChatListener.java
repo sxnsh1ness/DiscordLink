@@ -8,21 +8,15 @@ import org.bukkit.Bukkit;
 
 public class DiscordChatListener extends ListenerAdapter {
 
-    private final DiscordLink plugin;
-
-    public DiscordChatListener(DiscordLink plugin) {
-        this.plugin = plugin;
-    }
-
     @Override
     public void onMessageReceived(MessageReceivedEvent event) {
         if (event.getAuthor().isBot()) return;
         if (!event.isFromGuild()) return;
 
-        if (!plugin.getConfigManager().isChatEnabled()) return;
-        if (!plugin.getConfigManager().isRelayToMinecraft()) return;
+        if (!DiscordLink.getInstance().getConfigManager().isChatEnabled()) return;
+        if (!DiscordLink.getInstance().getConfigManager().isRelayToMinecraft()) return;
 
-        String chatChannelId = plugin.getConfigManager().getChatChannelId();
+        String chatChannelId = DiscordLink.getInstance().getConfigManager().getChatChannelId();
         if (chatChannelId.isEmpty()) return;
         if (!event.getChannel().getId().equals(chatChannelId)) return;
 
@@ -34,12 +28,12 @@ public class DiscordChatListener extends ListenerAdapter {
 
         if (message.isEmpty()) return;
 
-        String format = plugin.getConfigManager().getDiscordToMinecraftFormat()
+        String format = DiscordLink.getInstance().getConfigManager().getDiscordToMinecraftFormat()
                 .replace("%username%", username)
                 .replace("%tag%", tag)
                 .replace("%message%", message)
                 .replace("&", "§");
-        Bukkit.getScheduler().runTask(plugin, () -> {
+        Bukkit.getScheduler().runTask(DiscordLink.getInstance(), () -> {
             for (org.bukkit.entity.Player player : Bukkit.getOnlinePlayers()) {
                 player.sendMessage(format);
             }

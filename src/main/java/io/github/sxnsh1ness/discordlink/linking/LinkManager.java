@@ -1,6 +1,7 @@
 package io.github.sxnsh1ness.discordlink.linking;
 
 import io.github.sxnsh1ness.discordlink.DiscordLink;
+import io.github.sxnsh1ness.discordlink.data.CodeData;
 import io.github.sxnsh1ness.discordlink.database.Database;
 import io.github.sxnsh1ness.discordlink.util.Logger;
 import net.dv8tion.jda.api.entities.Guild;
@@ -18,13 +19,8 @@ import java.util.UUID;
 
 public class LinkManager {
 
-    private final DiscordLink plugin;
     private static final String CODE_CHARS = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
     private static final SecureRandom RANDOM = new SecureRandom();
-
-    public LinkManager(DiscordLink plugin) {
-        this.plugin = plugin;
-    }
 
     public String generateLinkCode(UUID playerUUID, String playerName) throws SQLException {
         String code;
@@ -33,10 +29,10 @@ public class LinkManager {
             code = generateCode();
             attempts++;
             if (attempts > 100) throw new SQLException("Could not generate unique code");
-        } while (plugin.getDatabase().getCode(code) != null);
+        } while (DiscordLink.getInstance().getDatabase().getCode(code) != null);
 
         long expireAt = System.currentTimeMillis() + (60_000L * 10);
-        plugin.getDatabase().saveCode(code, playerUUID, playerName, expireAt);
+        DiscordLink.getInstance().getDatabase().saveCode(code, playerUUID, playerName, expireAt);
         return code;
     }
 
@@ -50,36 +46,36 @@ public class LinkManager {
 
     public LinkResult completeLink(String code, String discordId, String discordTag) {
         try {
-            if (plugin.getDatabase().isDiscordLinked(discordId)) {
+            if (DiscordLink.getInstance().getDatabase().isDiscordLinked(discordId)) {
                 return LinkResult.DISCORD_ALREADY_LINKED;
             }
 
-            Database.CodeData data = plugin.getDatabase().getCode(code);
+            CodeData data = DiscordLink.getInstance().getDatabase().getCode(code);
             if (data == null) {
                 return LinkResult.INVALID_CODE;
             }
 
-            if (plugin.getDatabase().isLinked(data.uuid)) {
-                plugin.getDatabase().deleteCode(code);
+            if (DiscordLink.getInstance().getDatabase().isLinked(data.uuid)) {
+                DiscordLink.getInstance().getDatabase().deleteCode(code);
                 return LinkResult.MINECRAFT_ALREADY_LINKED;
             }
 
-            plugin.getDatabase().saveLink(data.uuid, discordId, discordTag);
-            plugin.getDatabase().deleteCode(code);
+            DiscordLink.getInstance().getDatabase().saveLink(data.uuid, discordId, discordTag);
+            DiscordLink.getInstance().getDatabase().deleteCode(code);
 
-            Bukkit.getScheduler().runTask(plugin, () -> {
+            Bukkit.getScheduler().runTask(DiscordLink.getInstance(), () -> {
                 applyLinkedRole(discordId);
                 applyNickname(discordId, data.username);
             });
 
             Player player = Bukkit.getPlayer(data.uuid);
             if (player != null) {
-                player.sendMessage(plugin.getConfigManager().getMessage("link.success",
+                player.sendMessage(DiscordLink.getInstance().getConfigManager().getMessage("link.success",
                         java.util.Map.of("tag", discordTag)));
             }
 
-            if (plugin.getConfigManager().isRoleSyncEnabled()) {
-                Bukkit.getScheduler().runTaskLater(plugin, () ->
+            if (DiscordLink.getInstance().getConfigManager().isRoleSyncEnabled()) {
+                Bukkit.getScheduler().runTaskLater(DiscordLink.getInstance(), () ->
                         syncRoles(data.uuid, discordId), 20L);
             }
 
@@ -94,12 +90,12 @@ public class LinkManager {
 
     public boolean unlink(UUID uuid) {
         try {
-            String discordId = plugin.getDatabase().getDiscordId(uuid);
+            String discordId = DiscordLink.getInstance().getDatabase().getDiscordId(uuid);
             if (discordId == null) return false;
 
-            plugin.getDatabase().removeLink(uuid);
+            DiscordLink.getInstance().getDatabase().removeLink(uuid);
 
-            Bukkit.getScheduler().runTask(plugin, () -> {
+            Bukkit.getScheduler().runTask(DiscordLink.getInstance(), () -> {
                 removeLinkedRole(discordId);
                 removeNickname(discordId);
             });
@@ -113,7 +109,7 @@ public class LinkManager {
 
     public boolean unlinkByDiscordId(String discordId) {
         try {
-            plugin.getDatabase().removeLinkByDiscordId(discordId);
+            DiscordLink.getInstance().getDatabase().removeLinkByDiscordId(discordId);
             removeLinkedRole(discordId);
             return true;
         } catch (SQLException e) {
@@ -123,10 +119,10 @@ public class LinkManager {
     }
 
     public void applyLinkedRole(String discordId) {
-        String roleId = plugin.getConfigManager().getLinkedRoleId();
+        String roleId = DiscordLink.getInstance().getConfigManager().getLinkedRoleId();
         if (roleId == null || roleId.isEmpty()) return;
 
-        Guild guild = plugin.getDiscordBot().getGuild();
+        Guild guild = DiscordLink.getInstance().getDiscordBot().getGuild();
         if (guild == null) return;
 
         guild.retrieveMemberById(discordId).queue(member -> {
@@ -141,10 +137,10 @@ public class LinkManager {
     }
 
     public void removeLinkedRole(String discordId) {
-        String roleId = plugin.getConfigManager().getLinkedRoleId();
+        String roleId = DiscordLink.getInstance().getConfigManager().getLinkedRoleId();
         if (roleId == null || roleId.isEmpty()) return;
 
-        Guild guild = plugin.getDiscordBot().getGuild();
+        Guild guild = DiscordLink.getInstance().getDiscordBot().getGuild();
         if (guild == null) return;
 
         guild.retrieveMemberById(discordId).queue(member -> {
@@ -156,9 +152,9 @@ public class LinkManager {
     }
 
     public void applyNickname(String discordId, String minecraftName) {
-        if (!plugin.getConfigManager().isSyncNickname()) return;
+        if (!DiscordLink.getInstance().getConfigManager().isSyncNickname()) return;
 
-        Guild guild = plugin.getDiscordBot().getGuild();
+        Guild guild = DiscordLink.getInstance().getDiscordBot().getGuild();
         if (guild == null) return;
 
         guild.retrieveMemberById(discordId).queue(member -> {
@@ -172,9 +168,9 @@ public class LinkManager {
 
     /** Remove the Discord nickname */
     public void removeNickname(String discordId) {
-        if (!plugin.getConfigManager().isSyncNickname()) return;
+        if (!DiscordLink.getInstance().getConfigManager().isSyncNickname()) return;
 
-        Guild guild = plugin.getDiscordBot().getGuild();
+        Guild guild = DiscordLink.getInstance().getDiscordBot().getGuild();
         if (guild == null) return;
 
         guild.retrieveMemberById(discordId).queue(member -> {
@@ -184,10 +180,10 @@ public class LinkManager {
     }
 
     public void syncRoles(UUID playerUUID, String discordId) {
-        if (!plugin.getConfigManager().isRoleSyncEnabled()) return;
+        if (!DiscordLink.getInstance().getConfigManager().isRoleSyncEnabled()) return;
 
         try {
-            Guild guild = plugin.getDiscordBot().getGuild();
+            Guild guild = DiscordLink.getInstance().getDiscordBot().getGuild();
             if (guild == null) return;
 
             if (Bukkit.getPluginManager().getPlugin("LuckPerms") == null) return;
@@ -197,7 +193,7 @@ public class LinkManager {
             if (user == null) return;
 
             String primaryGroup = user.getPrimaryGroup();
-            Map<String, String> mappings = plugin.getConfigManager().getRoleSyncMappings();
+            Map<String, String> mappings = DiscordLink.getInstance().getConfigManager().getRoleSyncMappings();
 
             guild.retrieveMemberById(discordId).queue(member -> {
                 for (String roleId : mappings.values()) {
@@ -225,7 +221,7 @@ public class LinkManager {
 
     public boolean isLinked(UUID uuid) {
         try {
-            return plugin.getDatabase().isLinked(uuid);
+            return DiscordLink.getInstance().getDatabase().isLinked(uuid);
         } catch (SQLException e) {
             Logger.severe("DB error checking link status: " + e.getMessage());
             return false;
@@ -234,7 +230,7 @@ public class LinkManager {
 
     public String getDiscordId(UUID uuid) {
         try {
-            return plugin.getDatabase().getDiscordId(uuid);
+            return DiscordLink.getInstance().getDatabase().getDiscordId(uuid);
         } catch (SQLException e) {
             return null;
         }
@@ -242,7 +238,7 @@ public class LinkManager {
 
     public String getDiscordTag(UUID uuid) {
         try {
-            return plugin.getDatabase().getDiscordTag(uuid);
+            return DiscordLink.getInstance().getDatabase().getDiscordTag(uuid);
         } catch (SQLException e) {
             return null;
         }

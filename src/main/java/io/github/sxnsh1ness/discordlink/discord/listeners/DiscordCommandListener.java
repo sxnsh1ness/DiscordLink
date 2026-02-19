@@ -13,12 +13,6 @@ import java.util.UUID;
 
 public class DiscordCommandListener extends ListenerAdapter {
 
-    private final DiscordLink plugin;
-
-    public DiscordCommandListener(DiscordLink plugin) {
-        this.plugin = plugin;
-    }
-
     @Override
     public void onSlashCommandInteraction(SlashCommandInteractionEvent event) {
         String discordId = event.getUser().getId();
@@ -36,8 +30,8 @@ public class DiscordCommandListener extends ListenerAdapter {
     private void handleLink(SlashCommandInteractionEvent event, String discordId, String discordTag) {
         String code = event.getOption("code").getAsString().toUpperCase().trim();
 
-        Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
-            LinkManager.LinkResult result = plugin.getLinkManager().completeLink(code, discordId, discordTag);
+        Bukkit.getScheduler().runTaskAsynchronously(DiscordLink.getInstance(), () -> {
+            LinkManager.LinkResult result = DiscordLink.getInstance().getLinkManager().completeLink(code, discordId, discordTag);
 
             String response = switch (result) {
                 case SUCCESS -> "✅ Your account has been successfully linked!";
@@ -52,27 +46,27 @@ public class DiscordCommandListener extends ListenerAdapter {
     }
 
     private void handleUnlink(SlashCommandInteractionEvent event, String discordId) {
-        if (!plugin.getConfigManager().isUnlinkAllowed()) {
+        if (!DiscordLink.getInstance().getConfigManager().isUnlinkAllowed()) {
             event.reply("❌ Unlinking is disabled on this server.").setEphemeral(true).queue();
             return;
         }
 
-        Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
+        Bukkit.getScheduler().runTaskAsynchronously(DiscordLink.getInstance(), () -> {
             try {
-                boolean wasLinked = plugin.getDatabase().isDiscordLinked(discordId);
+                boolean wasLinked = DiscordLink.getInstance().getDatabase().isDiscordLinked(discordId);
                 if (!wasLinked) {
                     event.reply("❌ Your Discord account is not linked to any Minecraft account.").setEphemeral(true).queue();
                     return;
                 }
 
-                UUID uuid = plugin.getDatabase().getMinecraftUUID(discordId);
-                plugin.getLinkManager().unlinkByDiscordId(discordId);
+                UUID uuid = DiscordLink.getInstance().getDatabase().getMinecraftUUID(discordId);
+                DiscordLink.getInstance().getLinkManager().unlinkByDiscordId(discordId);
 
                 if (uuid != null) {
-                    Bukkit.getScheduler().runTask(plugin, () -> {
+                    Bukkit.getScheduler().runTask(DiscordLink.getInstance(), () -> {
                         Player player = Bukkit.getPlayer(uuid);
                         if (player != null) {
-                            player.sendMessage(plugin.getConfigManager().getMessage("unlink.success"));
+                            player.sendMessage(DiscordLink.getInstance().getConfigManager().getMessage("unlink.success"));
                         }
                     });
                 }
@@ -86,13 +80,13 @@ public class DiscordCommandListener extends ListenerAdapter {
     }
 
     private void handleVerify(SlashCommandInteractionEvent event, String discordId) {
-        Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
+        Bukkit.getScheduler().runTaskAsynchronously(DiscordLink.getInstance(), () -> {
             try {
-                if (!plugin.getDatabase().isDiscordLinked(discordId)) {
+                if (!DiscordLink.getInstance().getDatabase().isDiscordLinked(discordId)) {
                     event.reply("❌ Your Discord account is not linked to any Minecraft account.\nLink it in-game using `/discord link`.").setEphemeral(true).queue();
                     return;
                 }
-                UUID uuid = plugin.getDatabase().getMinecraftUUID(discordId);
+                UUID uuid = DiscordLink.getInstance().getDatabase().getMinecraftUUID(discordId);
                 String playerName = uuid != null ? Bukkit.getOfflinePlayer(uuid).getName() : "Unknown";
                 event.reply("✅ You are linked to Minecraft account: **" + playerName + "**").setEphemeral(true).queue();
             } catch (SQLException e) {
@@ -102,28 +96,28 @@ public class DiscordCommandListener extends ListenerAdapter {
     }
 
     private void handleTwoFA(SlashCommandInteractionEvent event, String discordId) {
-        Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
+        Bukkit.getScheduler().runTaskAsynchronously(DiscordLink.getInstance(), () -> {
             try {
-                UUID uuid = plugin.getDatabase().getMinecraftUUID(discordId);
+                UUID uuid = DiscordLink.getInstance().getDatabase().getMinecraftUUID(discordId);
                 if (uuid == null) {
                     event.reply("❌ Your Discord is not linked to a Minecraft account.").setEphemeral(true).queue();
                     return;
                 }
 
-                if (!plugin.getTwoFAManager().hasPendingSession(uuid)) {
+                if (!DiscordLink.getInstance().getTwoFAManager().hasPendingSession(uuid)) {
                     event.reply("❌ No active 2FA session found.").setEphemeral(true).queue();
                     return;
                 }
 
                 String code = event.getOption("code").getAsString().trim();
-                var result = plugin.getTwoFAManager().verify(uuid, code);
+                var result = DiscordLink.getInstance().getTwoFAManager().verify(uuid, code);
 
                 switch (result) {
                     case SUCCESS -> {
-                        Bukkit.getScheduler().runTask(plugin, () -> {
+                        Bukkit.getScheduler().runTask(DiscordLink.getInstance(), () -> {
                             Player player = Bukkit.getPlayer(uuid);
                             if (player != null) {
-                                player.sendMessage(plugin.getConfigManager().getMessage("2fa.success"));
+                                player.sendMessage(DiscordLink.getInstance().getConfigManager().getMessage("2fa.success"));
                             }
                         });
                         event.reply("✅ 2FA verified successfully! You may now play.").setEphemeral(true).queue();

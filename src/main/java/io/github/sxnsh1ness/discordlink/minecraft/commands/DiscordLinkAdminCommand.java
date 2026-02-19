@@ -14,16 +14,10 @@ import java.util.*;
 
 public class DiscordLinkAdminCommand implements CommandExecutor, TabCompleter {
 
-    private final DiscordLink plugin;
-
-    public DiscordLinkAdminCommand(DiscordLink plugin) {
-        this.plugin = plugin;
-    }
-
     @Override
     public boolean onCommand(CommandSender sender, @NonNull Command cmd, @NonNull String label, String @NonNull [] args) {
         if (!sender.hasPermission("discordlink.admin")) {
-            sender.sendMessage(plugin.getConfigManager().getMessage("errors.no-permission"));
+            sender.sendMessage(DiscordLink.getInstance().getConfigManager().getMessage("errors.no-permission"));
             return true;
         }
 
@@ -34,8 +28,8 @@ public class DiscordLinkAdminCommand implements CommandExecutor, TabCompleter {
 
         switch (args[0].toLowerCase()) {
             case "reload" -> {
-                plugin.reload();
-                sender.sendMessage(plugin.getConfigManager().getMessage("admin.reloaded"));
+                DiscordLink.getInstance().reload();
+                sender.sendMessage(DiscordLink.getInstance().getConfigManager().getMessage("admin.reloaded"));
             }
             case "status" -> showStatus(sender);
             case "forceunlink" -> handleForceUnlink(sender, args);
@@ -49,13 +43,13 @@ public class DiscordLinkAdminCommand implements CommandExecutor, TabCompleter {
 
     private void showStatus(CommandSender sender) {
         sender.sendMessage("§9=== DiscordLink Status ===");
-        sender.sendMessage("§7Bot connected: " + (plugin.getDiscordBot().isReady() ? "§a✓" : "§c✗"));
-        sender.sendMessage("§7Guild: " + (plugin.getDiscordBot().getGuild() != null
-                ? "§a" + plugin.getDiscordBot().getGuild().getName() : "§cNot found"));
-        sender.sendMessage("§7Chat enabled: " + (plugin.getConfigManager().isChatEnabled() ? "§a✓" : "§c✗"));
-        sender.sendMessage("§7 2FA enabled: " + (plugin.getConfigManager().is2FAEnabled() ? "§a✓" : "§c✗"));
-        sender.sendMessage("§7Link required: " + (plugin.getConfigManager().isLinkRequired() ? "§a✓" : "§c✗"));
-        sender.sendMessage("§7Role sync: " + (plugin.getConfigManager().isRoleSyncEnabled() ? "§a✓" : "§c✗"));
+        sender.sendMessage("§7Bot connected: " + (DiscordLink.getInstance().getDiscordBot().isReady() ? "§a✓" : "§c✗"));
+        sender.sendMessage("§7Guild: " + (DiscordLink.getInstance().getDiscordBot().getGuild() != null
+                ? "§a" + DiscordLink.getInstance().getDiscordBot().getGuild().getName() : "§cNot found"));
+        sender.sendMessage("§7Chat enabled: " + (DiscordLink.getInstance().getConfigManager().isChatEnabled() ? "§a✓" : "§c✗"));
+        sender.sendMessage("§7 2FA enabled: " + (DiscordLink.getInstance().getConfigManager().is2FAEnabled() ? "§a✓" : "§c✗"));
+        sender.sendMessage("§7Link required: " + (DiscordLink.getInstance().getConfigManager().isLinkRequired() ? "§a✓" : "§c✗"));
+        sender.sendMessage("§7Role sync: " + (DiscordLink.getInstance().getConfigManager().isRoleSyncEnabled() ? "§a✓" : "§c✗"));
     }
 
     private void handleForceUnlink(CommandSender sender, String[] args) {
@@ -66,14 +60,14 @@ public class DiscordLinkAdminCommand implements CommandExecutor, TabCompleter {
         String playerName = args[1];
         OfflinePlayer target = Bukkit.getOfflinePlayerIfCached(playerName);
         if (target == null) {
-            sender.sendMessage(plugin.getConfigManager().getMessage("admin.player-not-found"));
+            sender.sendMessage(DiscordLink.getInstance().getConfigManager().getMessage("admin.player-not-found"));
             return;
         }
 
-        plugin.getServer().getScheduler().runTaskAsynchronously(plugin, () -> {
-            boolean success = plugin.getLinkManager().unlink(target.getUniqueId());
+        DiscordLink.getInstance().getServer().getScheduler().runTaskAsynchronously(DiscordLink.getInstance(), () -> {
+            boolean success = DiscordLink.getInstance().getLinkManager().unlink(target.getUniqueId());
             if (success) {
-                sender.sendMessage(plugin.getConfigManager().getMessage("admin.force-unlinked",
+                sender.sendMessage(DiscordLink.getInstance().getConfigManager().getMessage("admin.force-unlinked",
                         Map.of("player", playerName)));
             } else {
                 sender.sendMessage("§cPlayer is not linked.");
@@ -90,18 +84,18 @@ public class DiscordLinkAdminCommand implements CommandExecutor, TabCompleter {
         String playerName = args[1];
         OfflinePlayer target = Bukkit.getOfflinePlayerIfCached(playerName);
         if (target == null) {
-            sender.sendMessage(plugin.getConfigManager().getMessage("admin.player-not-found"));
+            sender.sendMessage(DiscordLink.getInstance().getConfigManager().getMessage("admin.player-not-found"));
             return;
         }
 
-        plugin.getServer().getScheduler().runTaskAsynchronously(plugin, () -> {
+        DiscordLink.getInstance().getServer().getScheduler().runTaskAsynchronously(DiscordLink.getInstance(), () -> {
             try {
-                boolean linked = plugin.getDatabase().isLinked(target.getUniqueId());
+                boolean linked = DiscordLink.getInstance().getDatabase().isLinked(target.getUniqueId());
                 sender.sendMessage("§9=== " + playerName + " ===");
                 sender.sendMessage("§7Linked: " + (linked ? "§aYes" : "§cNo"));
                 if (linked) {
-                    String discordId = plugin.getDatabase().getDiscordId(target.getUniqueId());
-                    String discordTag = plugin.getDatabase().getDiscordTag(target.getUniqueId());
+                    String discordId = DiscordLink.getInstance().getDatabase().getDiscordId(target.getUniqueId());
+                    String discordTag = DiscordLink.getInstance().getDatabase().getDiscordTag(target.getUniqueId());
                     sender.sendMessage("§7Discord: §e" + discordTag + " §7(" + discordId + ")");
                 }
             } catch (SQLException e) {
@@ -111,7 +105,7 @@ public class DiscordLinkAdminCommand implements CommandExecutor, TabCompleter {
     }
 
     private void handleSyncRoles(CommandSender sender, String[] args) {
-        if (!plugin.getConfigManager().isRoleSyncEnabled()) {
+        if (!DiscordLink.getInstance().getConfigManager().isRoleSyncEnabled()) {
             sender.sendMessage("§cRole sync is disabled in config.yml");
             return;
         }
@@ -122,17 +116,17 @@ public class DiscordLinkAdminCommand implements CommandExecutor, TabCompleter {
 
         OfflinePlayer target = Bukkit.getOfflinePlayerIfCached(args[1]);
         if (target == null) {
-            sender.sendMessage(plugin.getConfigManager().getMessage("admin.player-not-found"));
+            sender.sendMessage(DiscordLink.getInstance().getConfigManager().getMessage("admin.player-not-found"));
             return;
         }
 
-        plugin.getServer().getScheduler().runTaskAsynchronously(plugin, () -> {
-            String discordId = plugin.getLinkManager().getDiscordId(target.getUniqueId());
+        DiscordLink.getInstance().getServer().getScheduler().runTaskAsynchronously(DiscordLink.getInstance(), () -> {
+            String discordId = DiscordLink.getInstance().getLinkManager().getDiscordId(target.getUniqueId());
             if (discordId == null) {
                 sender.sendMessage("§c" + args[1] + " is not linked.");
                 return;
             }
-            plugin.getLinkManager().syncRoles(target.getUniqueId(), discordId);
+            DiscordLink.getInstance().getLinkManager().syncRoles(target.getUniqueId(), discordId);
             sender.sendMessage("§aRole sync triggered for " + args[1]);
         });
     }

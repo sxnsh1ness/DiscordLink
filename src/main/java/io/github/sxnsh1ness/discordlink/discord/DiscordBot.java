@@ -24,18 +24,13 @@ import java.util.EnumSet;
 
 public class DiscordBot {
 
-    private final DiscordLink plugin;
     @Getter
     private JDA jda;
     private BukkitTask statusTask;
 
-    public DiscordBot(DiscordLink plugin) {
-        this.plugin = plugin;
-    }
-
     public boolean start() {
         try {
-            jda = JDABuilder.createDefault(plugin.getConfigManager().getToken(),
+            jda = JDABuilder.createDefault(DiscordLink.getInstance().getConfigManager().getToken(),
                             EnumSet.of(
                                     GatewayIntent.GUILD_MESSAGES,
                                     GatewayIntent.GUILD_MEMBERS,
@@ -45,9 +40,9 @@ public class DiscordBot {
                     .setMemberCachePolicy(MemberCachePolicy.ALL)
                     .disableCache(CacheFlag.VOICE_STATE, CacheFlag.EMOJI, CacheFlag.STICKER, CacheFlag.SCHEDULED_EVENTS)
                     .addEventListeners(
-                            new DiscordChatListener(plugin),
-                            new DiscordCommandListener(plugin),
-                            new DiscordConsoleListener(plugin)
+                            new DiscordChatListener(),
+                            new DiscordCommandListener(),
+                            new DiscordConsoleListener()
                     )
                     .setStatus(OnlineStatus.ONLINE)
                     .build()
@@ -86,15 +81,15 @@ public class DiscordBot {
     }
 
     private void startStatusTask() {
-        if (!plugin.getConfigManager().isStatusEnabled()) return;
-        int interval = plugin.getConfigManager().getStatusUpdateInterval() * 20;
+        if (!DiscordLink.getInstance().getConfigManager().isStatusEnabled()) return;
+        int interval = DiscordLink.getInstance().getConfigManager().getStatusUpdateInterval() * 20;
 
-        statusTask = Bukkit.getScheduler().runTaskTimerAsynchronously(plugin, () -> {
-            String message = plugin.getConfigManager().getStatusMessage()
+        statusTask = Bukkit.getScheduler().runTaskTimerAsynchronously(DiscordLink.getInstance(), () -> {
+            String message = DiscordLink.getInstance().getConfigManager().getStatusMessage()
                     .replace("%online%", String.valueOf(Bukkit.getOnlinePlayers().size()))
                     .replace("%max%", String.valueOf(Bukkit.getMaxPlayers()));
 
-            Activity activity = switch (plugin.getConfigManager().getStatusType().toUpperCase()) {
+            Activity activity = switch (DiscordLink.getInstance().getConfigManager().getStatusType().toUpperCase()) {
                 case "PLAYING" -> Activity.playing(message);
                 case "LISTENING" -> Activity.listening(message);
                 case "COMPETING" -> Activity.competing(message);
@@ -155,13 +150,13 @@ public class DiscordBot {
     }
 
     public void sendWebhook(String username, String avatarUrl, String message) {
-        String webhookUrl = plugin.getConfigManager().getWebhookUrl();
+        String webhookUrl = DiscordLink.getInstance().getConfigManager().getWebhookUrl();
         if (webhookUrl == null || webhookUrl.isEmpty()) {
-            sendMessage(plugin.getConfigManager().getChatChannelId(), "**" + username + "**: " + message);
+            sendMessage(DiscordLink.getInstance().getConfigManager().getChatChannelId(), "**" + username + "**: " + message);
             return;
         }
 
-        Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
+        Bukkit.getScheduler().runTaskAsynchronously(DiscordLink.getInstance(), () -> {
             try {
                 java.net.URI uri = java.net.URI.create(webhookUrl);
                 java.net.HttpURLConnection con = (java.net.HttpURLConnection) uri.toURL().openConnection();
@@ -187,7 +182,7 @@ public class DiscordBot {
 
     public Guild getGuild() {
         if (jda == null) return null;
-        String guildId = plugin.getConfigManager().getGuildId();
+        String guildId = DiscordLink.getInstance().getConfigManager().getGuildId();
         if (guildId == null || guildId.isEmpty()) return null;
         return jda.getGuildById(guildId);
     }
